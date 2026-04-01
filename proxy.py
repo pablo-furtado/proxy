@@ -1,11 +1,14 @@
+from dotenv import load_dotenv
+load_dotenv()
+import os
 import socket
 import threading
 import datetime
 import time
 
 LISTEN_ADDR = "0.0.0.0"
-LISTEN_PORT = 1080
-ALLOWED_IP = "100.71.235.94"  # IP da VM
+LISTEN_PORT = int(os.getenv("LISTEN_PORT", 1080))
+ALLOWED_IP = os.getenv("ALLOWED_IP", ")/*IP_ADDRESS*/")
 
 def log(msg):
     print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {msg}")
