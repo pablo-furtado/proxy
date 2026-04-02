@@ -14,13 +14,7 @@ def log(msg):
     print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {msg}")
 
 
-def keep_alive(sock):
-    while True:
-        try:
-            sock.send(b"\x00")  # byte mínimo
-        except:
-            break
-        time.sleep(30)
+
 
 def handle_client(client_socket, client_ip):
     try:
@@ -71,33 +65,29 @@ def handle_client(client_socket, client_ip):
 
         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         client_socket.settimeout(300)
-        threading.Thread(target=keep_alive, args=(remote,), daemon=True).start()
-        threading.Thread(target=keep_alive, args=(client_socket,), daemon=True).start()
         client_socket.sendall(b"\x05\x00\x00\x01")
 
         client_socket.sendall(socket.inet_aton("0.0.0.0") + (0).to_bytes(2, 'big'))
 
         def forward(source, destination, direction):
-
             try:
-
                 while True:
-
                     data = source.recv(65536)
-
                     if not data:
-
                         break
-
                     destination.sendall(data)
-
             except Exception as e:
                 log(f"Erro forward: {e}")
             finally:
-                source.close()
-                destination.close()
-                log(f"Conexão encerrada ({direction}) {client_ip} -> {addr}:{port}")
-
+                log(f"Encerrando conexão ({direction}) {client_ip} -> {addr}:{port}")
+                try:
+                    source.shutdown(socket.SHUT_RDWR)
+                except:
+                    pass
+                try:
+                    destination.shutdown(socket.SHUT_RDWR)
+                except:
+                    pass
         t1 = threading.Thread(target=forward, args=(client_socket, remote, "C→R"))
 
         t2 = threading.Thread(target=forward, args=(remote, client_socket, "R→C"))
@@ -105,6 +95,8 @@ def handle_client(client_socket, client_ip):
         t1.start()
 
         t2.start()
+        t1.join()
+        t2.join()   
 
     except Exception as e:
         log(f"Erro: {e}")
