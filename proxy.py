@@ -8,7 +8,7 @@ import time
 
 LISTEN_ADDR = "0.0.0.0"
 LISTEN_PORT = int(os.getenv("LISTEN_PORT", 1080))
-ALLOWED_IP = os.getenv("ALLOWED_IP", ")/*IP_ADDRESS*/")
+ALLOWED_IP = os.getenv("ALLOWED_IP", "")
 
 def log(msg):
     print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {msg}")
