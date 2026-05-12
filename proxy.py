@@ -1,26 +1,23 @@
 from dotenv import load_dotenv
 load_dotenv()
+from setup_logging import setup_logging
+setup_logging()
 import os
 import socket
 import threading
 import datetime
 import time
-
+from logger import logger
 LISTEN_ADDR = "0.0.0.0"
 LISTEN_PORT = int(os.getenv("LISTEN_PORT", 1080))
 ALLOWED_IP = os.getenv("ALLOWED_IP", "")
-
-def log(msg):
-    print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {msg}")
-
 
 
 
 def handle_client(client_socket, client_ip):
     try:
 
-        log(f"Nova conexão de {client_ip}")
-
+        logger.info(f"Nova conexão de {client_ip}")
         # handshake SOCKS5
 
         client_socket.recv(262)
@@ -44,16 +41,14 @@ def handle_client(client_socket, client_ip):
             addr = client_socket.recv(domain_length).decode()
 
         else:
-
-            log(f"Tipo de endereço não suportado: {addr_type}")
+            logger.warning(f"Tipo de endereço não suportado: {addr_type}")
 
             client_socket.close()
 
             return
 
         port = int.from_bytes(client_socket.recv(2), 'big')
-
-        log(f"{client_ip} -> {addr}:{port}")
+        logger.info(f"{client_ip} -> {addr}:{port}")
 
         # connect to target
 
@@ -77,9 +72,9 @@ def handle_client(client_socket, client_ip):
                         break
                     destination.sendall(data)
             except Exception as e:
-                log(f"Erro forward: {e}")
+                logger.exception("Erro")
             finally:
-                log(f"Encerrando conexão ({direction}) {client_ip} -> {addr}:{port}")
+                logger.info(f"Encerrando conexão ({direction}) {client_ip} -> {addr}:{port}")
                 try:
                     source.shutdown(socket.SHUT_RDWR)
                 except:
@@ -99,7 +94,7 @@ def handle_client(client_socket, client_ip):
         t2.join()   
 
     except Exception as e:
-        log(f"Erro: {e}")
+        logger.exception("Erro")
         client_socket.close()
 
 def start():
@@ -108,8 +103,7 @@ def start():
     server.bind((LISTEN_ADDR, LISTEN_PORT))
 
     server.listen(20)
-
-    log(f"Proxy SOCKS5 rodando em {LISTEN_PORT}")
+    logger.info(f"Proxy SOCKS5 rodando em {LISTEN_PORT}")
 
     while True:
 
@@ -118,8 +112,7 @@ def start():
         client_ip = addr[0]
 
         if client_ip != ALLOWED_IP:
-
-            log(f"Conexão BLOQUEADA de {client_ip}")
+            logger.warning(f"Conexão BLOQUEADA de {client_ip}")
 
             client_socket.close()
 

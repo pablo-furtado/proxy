@@ -1,0 +1,11 @@
+
+
+──────── LOG ────────
+TIME  : 2026-05-12 17:14:15,007
+LEVEL : INFO
+LOGGER: logger
+FILE  : proxy.py | line: 106
+FUNC  : start
+MSG   : Proxy SOCKS5 rodando em 1080
+
+
